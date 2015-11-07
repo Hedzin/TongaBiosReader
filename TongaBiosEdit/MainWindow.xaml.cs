@@ -847,8 +847,7 @@ namespace TongaBiosReader
             gpuFrequencyTable.Columns[2].IsReadOnly = false;
             gpuFrequencyTable.Columns[3].IsReadOnly = true;
             gpuFrequencyTable.Columns[4].IsReadOnly = true;
-            gpuFrequencyTable.Columns[5].IsReadOnly = true;
-            gpuFrequencyTable.Columns[6].IsReadOnly = false;
+
         }
 
         private void memFrequencyTable_GotFocus(object sender, RoutedEventArgs e)
@@ -858,8 +857,7 @@ namespace TongaBiosReader
             memFrequencyTable.Columns[2].IsReadOnly = false;
             memFrequencyTable.Columns[3].IsReadOnly = true;
             memFrequencyTable.Columns[4].IsReadOnly = true;
-            memFrequencyTable.Columns[5].IsReadOnly = true;
-            memFrequencyTable.Columns[6].IsReadOnly = true;
+
         }
 
         private void memgpuFrequencyTable_GotFocus(object sender, RoutedEventArgs e)

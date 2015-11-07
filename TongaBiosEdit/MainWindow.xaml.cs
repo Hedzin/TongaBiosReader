@@ -18,13 +18,15 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using HawaiiBiosReader;
 
-namespace HawaiBiosReader
+namespace TongaBiosReader
 {
 
     public partial class MainWindow : Window
     {
         ObservableCollection<GridRow> data = new ObservableCollection<GridRow>();
-        ObservableCollection<GridRowVoltage> voltageList = new ObservableCollection<GridRowVoltage>();
+        //ObservableCollection<GridRowVoltage> voltageList = new ObservableCollection<GridRowVoltage>();
+        ObservableCollection<GridRowVoltage2> voltageList2 = new ObservableCollection<GridRowVoltage2>();
+        ObservableCollection<GridRowVoltage2> voltageList3 = new ObservableCollection<GridRowVoltage2>();
         ObservableCollection<GridRowVoltage> gpumemFrequencyListAndPowerLimit = new ObservableCollection<GridRowVoltage>();
 
         ObservableCollection<GridRow> gpuFrequencyList = new ObservableCollection<GridRow>();
@@ -35,8 +37,10 @@ namespace HawaiBiosReader
         ObservableCollection<GridRow> ACPLimitTableData = new ObservableCollection<GridRow>();
 
         Byte[] romStorageBuffer; // whole rom
-        Byte[] powerTablepattern = new Byte[] { 0x02, 0x06, 0x01, 0x00 };
-        Byte[] voltageObjectInfoPattern = new Byte[] { 0x00, 0x03, 0x01, 0x01, 0x03 };
+        // Byte[] powerTablepattern = new Byte[] { 0x02, 0x06, 0x01, 0x00 };
+        Byte[] powerTablepattern = new Byte[] { 0x02, 0x07, 0x01, 0x00 };
+        //Byte[] voltageObjectInfoPattern = new Byte[] { 0x00, 0x03, 0x01, 0x01, 0x03 };
+        Byte[] voltageObjectInfoPattern = new Byte[] { 0x00, 0x03, 0x01, 0x01, 0x07 };
 
         // unknown table offsets
         int powerTablePosition;
@@ -46,18 +50,20 @@ namespace HawaiBiosReader
         int developTablePosition;
 
         // table offsets for default
-        int fanTableOffset = 175;
+        int fanTableOffset = 559;
         int biosNameOffset = 220;
-        int tdpLimitOffset = 630;
-        int tdcLimitOffset = 632;
-        int powerDeliveryLimitOffset = 642;
-
-        int voltageTableOffset = 319;
-        int memoryFrequencyTableOffset = 278;
-        int gpuFrequencyTableOffset = 231;
-        int VCELimitTableOffset = 396;
-        int AMUAndACPLimitTableOffset = 547;
-        int UVDLimitTableOffset = 441;
+        int tdpLimitOffset = 0;
+        int tdcLimitOffset = 613;
+        int powerDeliveryLimitOffset = 31;
+        int voltageTable3countOffset = 178;
+        int voltageTable3Offset = 179;
+        int voltageTable2countOffset = 120;
+        int voltageTable2Offset = 121;
+        int memoryFrequencyTableOffset = 342;
+        int gpuFrequencyTableOffset = 248;
+        int VCELimitTableOffset = 0;
+        int AMUAndACPLimitTableOffset = 0;
+        int UVDLimitTableOffset = 0;
         string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(); // program version
 
 
@@ -108,7 +114,7 @@ namespace HawaiBiosReader
                     {
                         powerTableSize = 256 * romStorageBuffer[powerTablePosition + 1] + romStorageBuffer[powerTablePosition];
                         powerTablesize.Text = powerTableSize.ToString();
-
+                        Console.WriteLine(powerTableSize);
                         /*#################################################################################################
                          * 
                          *               BIOS PARSING SECTION
@@ -116,126 +122,31 @@ namespace HawaiBiosReader
                         #################################################################################################*/
                         switch (powerTableSize)
                         {
-                            case 660:
-                                powerTablesize.Text += " - R9 390/390X";
-                                voltageTableOffset = 319;
-                                memoryFrequencyTableOffset = 278;
-                                gpuFrequencyTableOffset = 231;
-                                VCELimitTableOffset = 521;
-                                AMUAndACPLimitTableOffset = 547;
-                                UVDLimitTableOffset = 439;
-                                tdpLimitOffset = 632;
-                                tdcLimitOffset = 634;
-                                powerDeliveryLimitOffset = 644;
+                            case 659:
+                                powerTablesize.Text += " - Sapphire R9 380";
+                                voltageTable2Offset = 121;
+                                memoryFrequencyTableOffset = 342;
+                                //gpuFrequencyTableOffset = 231;
+                                gpuFrequencyTableOffset = 248;
+                                //VCELimitTableOffset = 0;
+                                //AMUAndACPLimitTableOffset = 0;
+                                //UVDLimitTableOffset = 0;
+                                //tdpLimitOffset = 0;
+                                //tdcLimitOffset = 0;
+                                powerDeliveryLimitOffset = 31;
                                 break;
                             case 661:
-                                powerTablesize.Text += " - R9 295X";
-                                voltageTableOffset = 320;
-                                memoryFrequencyTableOffset = 279;
-                                gpuFrequencyTableOffset = 232;
-                                VCELimitTableOffset = 522;
-                                AMUAndACPLimitTableOffset = 548;
-                                UVDLimitTableOffset = 440;
-                                tdpLimitOffset = 633;
-                                tdcLimitOffset = 635;
-                                powerDeliveryLimitOffset = 645;
-                                fanTableOffset = 14632 + 6;
-                                break;
-                            case 662:
-                                powerTablesize.Text += " - R9 390/390X (Sapphire)";
-                                voltageTableOffset = 321;
-                                memoryFrequencyTableOffset = 280;
-                                gpuFrequencyTableOffset = 233;
-                                VCELimitTableOffset = 523;
-                                AMUAndACPLimitTableOffset = 549;
-                                UVDLimitTableOffset = 441;
-                                tdpLimitOffset = 634;
-                                tdcLimitOffset = 636;
-                                powerDeliveryLimitOffset = 646;
-                                break;
-                            case 669:// XFX R9 290X Double Dissipation
-                                powerTablesize.Text += " - XFX R9 290X Double Dissipation";
-                                voltageTableOffset = 328;
-                                memoryFrequencyTableOffset = 287;
-                                gpuFrequencyTableOffset = 240;
-                                VCELimitTableOffset = 530;
-                                AMUAndACPLimitTableOffset = 556;
-                                UVDLimitTableOffset = 448;
-                                tdpLimitOffset = 641;
-                                tdcLimitOffset = 643;
-                                powerDeliveryLimitOffset = 653;
-                                break;
-                            case 671:// The Slith edited roms
-                                powerTablesize.Text += " - R9 290X The Slith roms";
-                                voltageTableOffset = 330;
-                                memoryFrequencyTableOffset = 289;
-                                gpuFrequencyTableOffset = 242;
-                                VCELimitTableOffset = 532;
-                                AMUAndACPLimitTableOffset = 558;
-                                UVDLimitTableOffset = 450;
-                                tdpLimitOffset = 643;
-                                tdcLimitOffset = 645;
-                                powerDeliveryLimitOffset = 655;
-                                break;
-                            case 650:
-                                powerTablesize.Text += " - R9 290X (MSI Lightning)";
-                                voltageTableOffset = 309;
-                                memoryFrequencyTableOffset = 268;
-                                gpuFrequencyTableOffset = 221;
-                                VCELimitTableOffset = 511;
-                                AMUAndACPLimitTableOffset = 537;
-                                UVDLimitTableOffset = 429;
-                                tdpLimitOffset = 622;
-                                tdcLimitOffset = 624;
-                                powerDeliveryLimitOffset = 634;
-                                break;
-                            case 648:
-                                powerTablesize.Text += " - R9 290/290X";
-                                voltageTableOffset = 307;
-                                memoryFrequencyTableOffset = 266;
-                                gpuFrequencyTableOffset = 219;
-                                VCELimitTableOffset = 509;
-                                AMUAndACPLimitTableOffset = 535;
-                                UVDLimitTableOffset = 427;
-                                tdpLimitOffset = 620;
-                                tdcLimitOffset = 622;
-                                powerDeliveryLimitOffset = 632;
-                                break;
-                            case 658: // The Stilt mining bios for 290/290X
-                                powerTablesize.Text += " - R9 290/290X (The Stilt)";
-                                voltageTableOffset = 316;
-                                memoryFrequencyTableOffset = 275;
-                                gpuFrequencyTableOffset = 228;
-                                VCELimitTableOffset = 519;
-                                AMUAndACPLimitTableOffset = 545;
-                                UVDLimitTableOffset = 437;
-                                tdpLimitOffset = 630;
-                                tdcLimitOffset = 632;
-                                powerDeliveryLimitOffset = 642;
-                                break;
-                            case 642: // PT1/PT3
-                                powerTablesize.Text += " - R9 290/290X (PT1/PT3)";
-                                voltageTableOffset = 300;
-                                memoryFrequencyTableOffset = 259;
-                                gpuFrequencyTableOffset = 212;
-                                VCELimitTableOffset = 503;
-                                AMUAndACPLimitTableOffset = 529;
-                                UVDLimitTableOffset = 421;
-                                tdpLimitOffset = 614;
-                                tdcLimitOffset = 616;
-                                powerDeliveryLimitOffset = 626;
-                                break;
-                            case 634: // FirePro W9100
-                                powerTablesize.Text += " - FirePro W9100";
-                                voltageTableOffset = 317;
-                                memoryFrequencyTableOffset = 276;
-                                gpuFrequencyTableOffset = 229;
-                                VCELimitTableOffset = 495;
-                                AMUAndACPLimitTableOffset = 521;
-                                UVDLimitTableOffset = 425;
-                                tdpLimitOffset = 606;
-                                tdcLimitOffset = 608;
-                                powerDeliveryLimitOffset = 618;
+                                powerTablesize.Text += " - MSI R9 380";
+                                voltageTable2Offset = 121;
+                                memoryFrequencyTableOffset = 342;
+                                //gpuFrequencyTableOffset = 231;
+                                gpuFrequencyTableOffset = 248;
+                                //VCELimitTableOffset = 0;
+                                //AMUAndACPLimitTableOffset = 0;
+                                //UVDLimitTableOffset = 0;
+                                //tdpLimitOffset = 0;
+                                //tdcLimitOffset = 0;
+                                powerDeliveryLimitOffset = 31;
                                 break;
                             default:
                                 powerTablesize.Text += " - Unknown type";
@@ -248,31 +159,68 @@ namespace HawaiBiosReader
 
 
                         gpumemFrequencyListAndPowerLimit.Clear();
-                        gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + 98).ToString("X"), get24BitValueFromPosition(powerTablePosition + 98, romStorageBuffer, true), "Mhz", "24-bit"));
-                        gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + 107).ToString("X"), get24BitValueFromPosition(powerTablePosition + 107, romStorageBuffer, true), "Mhz", "24-bit"));
-                        gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + 116).ToString("X"), get24BitValueFromPosition(powerTablePosition + 116, romStorageBuffer, true), "Mhz", "24-bit"));
-                        gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + 101).ToString("X"), get24BitValueFromPosition(powerTablePosition + 101, romStorageBuffer, true), "Mhz", "24-bit"));
-                        gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + 110).ToString("X"), get24BitValueFromPosition(powerTablePosition + 110, romStorageBuffer, true), "Mhz", "24-bit"));
-                        gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + 119).ToString("X"), get24BitValueFromPosition(powerTablePosition + 119, romStorageBuffer, true), "Mhz", "24-bit"));
-                        gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + tdpLimitOffset).ToString("X"), get16BitValueFromPosition(powerTablePosition + tdpLimitOffset, romStorageBuffer), "W", "16-bit"));
-                        gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + powerDeliveryLimitOffset).ToString("X"), get16BitValueFromPosition(powerTablePosition + powerDeliveryLimitOffset, romStorageBuffer), "W", "16-bit"));
-                        gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + tdcLimitOffset).ToString("X"), get16BitValueFromPosition(powerTablePosition + tdcLimitOffset, romStorageBuffer), "A", "16-bit"));
+                        //gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + 98).ToString("X"), get24BitValueFromPosition(powerTablePosition + 98, romStorageBuffer, true), "Mhz", "24-bit"));
+                        //gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + 107).ToString("X"), get24BitValueFromPosition(powerTablePosition + 107, romStorageBuffer, true), "Mhz", "24-bit"));
+                        //gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + 116).ToString("X"), get24BitValueFromPosition(powerTablePosition + 116, romStorageBuffer, true), "Mhz", "24-bit"));
+                        //gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + 101).ToString("X"), get24BitValueFromPosition(powerTablePosition + 101, romStorageBuffer, true), "Mhz", "24-bit"));
+                        //gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + 110).ToString("X"), get24BitValueFromPosition(powerTablePosition + 110, romStorageBuffer, true), "Mhz", "24-bit"));
+                        //gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + 119).ToString("X"), get24BitValueFromPosition(powerTablePosition + 119, romStorageBuffer, true), "Mhz", "24-bit"));
+                        //gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + tdpLimitOffset).ToString("X"), get16BitValueFromPosition(powerTablePosition + tdpLimitOffset, romStorageBuffer), "W", "16-bit"));
+                        gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + powerDeliveryLimitOffset).ToString("X"), get16BitValueFromPosition(powerTablePosition + powerDeliveryLimitOffset, romStorageBuffer), "%", "16-bit"));
+                        //gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + tdcLimitOffset).ToString("X"), get16BitValueFromPosition(powerTablePosition + tdcLimitOffset, romStorageBuffer), "A", "16-bit"));
 
                         memgpuFrequencyTable.ItemsSource = gpumemFrequencyListAndPowerLimit;
 
+
+                        // read voltage table 1
+                        voltageList2.Clear();
+                        int voltageTable2count = get8BitValueFromPosition(powerTablePosition + voltageTable2countOffset, romStorageBuffer);
+                        int fullvoltageTable2Offset = powerTablePosition + voltageTable2Offset;
+                        Console.WriteLine("voltageTable2count:" + voltageTable2count);
+                        Console.WriteLine("fullvoltageTable2Offset:" + fullvoltageTable2Offset);
+                        for (int i = 0; i < voltageTable2count; i++)
+                        {
+                            readValueFromPositionToList(voltageList2, (fullvoltageTable2Offset + (i * 8)), (fullvoltageTable2Offset + (i * 8)) + 2, (fullvoltageTable2Offset + (i * 8)) + 4, (fullvoltageTable2Offset + (i * 8)) + 6, 0, "mV", false, i);
+                        }
+                        voltageEdit2.ItemsSource = voltageList2;
+
+
+                        // read voltage table 2
+                        voltageList3.Clear();
+                        int voltageTable3count = get8BitValueFromPosition(powerTablePosition + voltageTable3countOffset, romStorageBuffer);
+                        int fullvoltageTable3Offset = powerTablePosition + voltageTable3Offset;
+                        Console.WriteLine("voltageTable3count:" + voltageTable3count);
+                        Console.WriteLine("fullvoltageTable3Offset:" + fullvoltageTable3Offset);
+                        for (int i = 0; i < voltageTable3count; i++)
+                        {
+                            readValueFromPositionToList(voltageList3, (fullvoltageTable3Offset + (i * 8)), (fullvoltageTable3Offset + (i * 8)) + 2, (fullvoltageTable3Offset + (i * 8)) + 4, (fullvoltageTable3Offset + (i * 8)) + 6, 0, "mV", false, i);
+                        }
+                        voltageEdit3.ItemsSource = voltageList3;
+
+
+
+
+
+
+
                         // read voltage table
-                        voltageList.Clear();
-                        for (int i = 0; i < 24; i++)
+                        //voltageList.Clear();
+                        /*
+                        for (int i = 0; i < 28; i++)
                         {
                             readValueFromPositionToList(voltageList, (powerTablePosition + voltageTableOffset + (i * 2)), 0, "mV", false);
                         }
                         voltageEdit.ItemsSource = voltageList;
-
+                        */
                         // memory frequency table
+                        int memoryCount = 4;
+                        if (biosName.Text.Contains("TONGA")) memoryCount = 2;
+
+
                         memFrequencyList.Clear();
-                        for (int i = 0; i < 8; i++)
+                        for (int i = 0; i < memoryCount; i++)
                         {
-                            readValueFromPositionToList(memFrequencyList, (powerTablePosition + memoryFrequencyTableOffset + (i * 5)), 1, "Mhz", true, i);
+                            readValueFromPositionToList(memFrequencyList, (powerTablePosition + memoryFrequencyTableOffset + (i * 13)), 1, "Mhz", true, i);
                         }
                         memFrequencyTable.ItemsSource = memFrequencyList;
 
@@ -280,49 +228,55 @@ namespace HawaiBiosReader
                         gpuFrequencyList.Clear();
                         for (int i = 0; i < 8; i++)
                         {
-                            readValueFromPositionToList(gpuFrequencyList, (powerTablePosition + gpuFrequencyTableOffset + (i * 5)), 1, "Mhz", true, i);
+                            readValueFromPositionToList(gpuFrequencyList, (powerTablePosition + gpuFrequencyTableOffset + (i * 11)), 1, "Mhz", true, i);
                         }
                         gpuFrequencyTable.ItemsSource = gpuFrequencyList;
 
                         int position = 0;
                         // StartVCELimitTable
                         VCELimitTableData.Clear();
+                        /*
                         for (int i = 0; i < 8; i++)
                         {
                             position = powerTablePosition + VCELimitTableOffset + (i * 3);
                             VCELimitTableData.Add(new GridRow("0x" + (position + 2).ToString("X"),  get8BitValueFromPosition(position + 2, romStorageBuffer), "DPM", "8-bit", i, "0x" + (position).ToString("X"),get16BitValueFromPosition(position, romStorageBuffer, false)));
                         }
                         VCELimitTable.ItemsSource = VCELimitTableData;
-
+                        */
                         // StartUVDLimitTable
                         UVDLimitTableData.Clear();
+                        /*
                         for (int i = 0; i < 8; i++)
                         {
                             position = powerTablePosition + UVDLimitTableOffset + (i * 3);
                             UVDLimitTableData.Add(new GridRow("0x" + (position + 2).ToString("X"), get8BitValueFromPosition(position + 2, romStorageBuffer), "DPM", "8-bit", i, "0x" + (position).ToString("X"), get16BitValueFromPosition(position, romStorageBuffer, false)));
                         }
                         UVDLimitTable.ItemsSource = UVDLimitTableData;
-
+                        */
                         // StartSAMULimitTable + StartACPLimitTable
+
                         SAMULimitTableData.Clear();
+                        /*
                         for (int i = 0; i < 8; i++)
                         {
                             position = powerTablePosition + AMUAndACPLimitTableOffset + (i * 5);
                             SAMULimitTableData.Add(new GridRow("0x" + (position + 2).ToString("X"), get24BitValueFromPosition(position + 2, romStorageBuffer), "%", "24-bit", i, "0x" + (position).ToString("X"), get16BitValueFromPosition(position, romStorageBuffer, false)));
                         }
                         SAMULimitTable.ItemsSource = SAMULimitTableData;
-
+                        */
 
                         ACPLimitTableData.Clear();
+                        /*
                         for (int i = 0; i < 8; i++)
                         {
                             position = powerTablePosition + AMUAndACPLimitTableOffset + 42 + (i * 5);
                             ACPLimitTableData.Add(new GridRow("0x" + (position + 2).ToString("X"), get24BitValueFromPosition(position + 2, romStorageBuffer), "%", "24-bit", i, "0x" + (position).ToString("X"), get16BitValueFromPosition(position, romStorageBuffer, false)));
                         }
                         ACPLimitTable.ItemsSource = ACPLimitTableData;
-
+                        */
                         if (fanTablePosition > 0)
                         {
+
                             readValueFromPosition(temperatureHysteresis, fanTablePosition + 1, 2, "°C");
                             readValueFromPosition(fantemperature1, fanTablePosition + 2, 0, "°C", true);
                             readValueFromPosition(fantemperature2, fanTablePosition + 4, 0, "°C", true);
@@ -334,10 +288,11 @@ namespace HawaiBiosReader
                             readValueFromPosition(fanspeed3, fanTablePosition + 12, 0, "%", true);
                             readValueFromPosition(fanControlType, fanTablePosition + 16, 2, "", true);
                             readValueFromPosition(pwmFanMax, fanTablePosition + 17, 2, "%");
-                            readValueFromPosition(maxAsicTemperature, fanTablePosition + 459, 2, "°C");
+                            //readValueFromPosition(maxAsicTemperature, fanTablePosition + 459, 2, "°C");
 
-                            readValueFromPosition(gpuMaxClock, fanTablePosition + 33, 1, "Mhz");  // this offset work only for 390X need some polishing for other cards
-                            readValueFromPosition(memMaxClock, fanTablePosition + 37, 1, "Mhz");
+                            readValueFromPosition(gpuMaxClock, powerTablePosition + 23, 1, "Mhz", true);  // this offset work only for 390X need some polishing for other cards
+                            readValueFromPosition(memMaxClock, powerTablePosition + 27, 1, "Mhz", true);
+
                         }
                         else
                         {
@@ -435,16 +390,16 @@ namespace HawaiBiosReader
             switch (type)
             {
                 case 0: // 16 bit value
-                    dest.Add(new GridRow("0x" + position.ToString("X"), get16BitValueFromPosition(position, romStorageBuffer, isFrequency), units, "16-bit", dpm, "0x" + (position + 2).ToString("X"), get16BitValueFromPosition(position + 2, romStorageBuffer)));
+                    dest.Add(new GridRow("0x" + position.ToString("X"), get16BitValueFromPosition(position, romStorageBuffer, isFrequency), units, "16-bit", dpm));
                     break;
                 case 1: // 24 bit value
-                    dest.Add(new GridRow("0x" + position.ToString("X"), get24BitValueFromPosition(position, romStorageBuffer, isFrequency), units, "24-bit", dpm, "0x" + (position + 3).ToString("X"), get16BitValueFromPosition(position + 3, romStorageBuffer)));
+                    dest.Add(new GridRow("0x" + position.ToString("X"), get24BitValueFromPosition(position, romStorageBuffer, isFrequency), units, "24-bit", dpm));
                     break;
                 case 2: // 8 bit value
-                    dest.Add(new GridRow("0x" + position.ToString("X"), get8BitValueFromPosition(position, romStorageBuffer, isFrequency), units, "8-bit", dpm, "0x" + (position + 1).ToString("X"), get16BitValueFromPosition(position + 1, romStorageBuffer)));
+                    dest.Add(new GridRow("0x" + position.ToString("X"), get8BitValueFromPosition(position, romStorageBuffer, isFrequency), units, "8-bit", dpm));
                     break;
                 default:
-                    dest.Add(new GridRow("0x" + position.ToString("X"), get8BitValueFromPosition(position, romStorageBuffer, isFrequency), units, "8-bit", dpm, "0x" + (position + 1).ToString("X"), get16BitValueFromPosition(position + 1, romStorageBuffer)));
+                    dest.Add(new GridRow("0x" + position.ToString("X"), get8BitValueFromPosition(position, romStorageBuffer, isFrequency), units, "8-bit", dpm));
                     break;
             }
         }
@@ -467,7 +422,36 @@ namespace HawaiBiosReader
                     break;
             }
         }
-
+        public void readValueFromPositionToList(ObservableCollection<GridRowVoltage2> dest, int position0, int position1, int position2, int position3, int type, String units = "", bool isFrequency = false, int dpm = -1)
+        {
+            switch (type)
+            {
+                case 0: // 16 bit value
+                    dest.Add(new GridRowVoltage2("0x" + position0.ToString("X"), get16BitValueFromPosition(position0, romStorageBuffer, isFrequency),
+                        "0x" + position1.ToString("X"), get16BitValueFromPosition(position1, romStorageBuffer, isFrequency),
+                        "0x" + position2.ToString("X"), get16BitValueFromPosition(position2, romStorageBuffer, isFrequency),
+                        "0x" + position3.ToString("X"), get16BitValueFromPosition(position3, romStorageBuffer, isFrequency), units, "16-bit", dpm));
+                    break;
+                case 1: // 24 bit value
+                    dest.Add(new GridRowVoltage2("0x" + position0.ToString("X"), get24BitValueFromPosition(position0, romStorageBuffer, isFrequency),
+                        "0x" + position1.ToString("X"), get24BitValueFromPosition(position1, romStorageBuffer, isFrequency),
+                        "0x" + position2.ToString("X"), get24BitValueFromPosition(position2, romStorageBuffer, isFrequency),
+                        "0x" + position3.ToString("X"), get24BitValueFromPosition(position3, romStorageBuffer, isFrequency), units, "24-bit", dpm));
+                    break;
+                case 2: // 8 bit value
+                    dest.Add(new GridRowVoltage2("0x" + position0.ToString("X"), get8BitValueFromPosition(position0, romStorageBuffer, isFrequency),
+                        "0x" + position1.ToString("X"), get8BitValueFromPosition(position1, romStorageBuffer, isFrequency),
+                        "0x" + position2.ToString("X"), get8BitValueFromPosition(position2, romStorageBuffer, isFrequency),
+                        "0x" + position3.ToString("X"), get8BitValueFromPosition(position3, romStorageBuffer, isFrequency), units, "8-bit", dpm));
+                    break;
+                default:
+                    dest.Add(new GridRowVoltage2("0x" + position0.ToString("X"), get8BitValueFromPosition(position0, romStorageBuffer, isFrequency),
+                        "0x" + position1.ToString("X"), get8BitValueFromPosition(position1, romStorageBuffer, isFrequency),
+                        "0x" + position2.ToString("X"), get8BitValueFromPosition(position2, romStorageBuffer, isFrequency),
+                        "0x" + position3.ToString("X"), get8BitValueFromPosition(position3, romStorageBuffer, isFrequency), units, "8-bit", dpm));
+                    break;
+            }
+        }
 
         private static int PTPatternAt(byte[] data, byte[] pattern)
         {
@@ -573,14 +557,15 @@ namespace HawaiBiosReader
                 BinaryWriter bw = new BinaryWriter(fs);
 
                 // save our changes
-                saveList(voltageList, true); // there are values which are not frequency but it works as they are only singlevalue
+                saveList(voltageList2, false); // there are values which are not frequency but it works as they are only singlevalue
+                saveList(voltageList3, false); // there are values which are not frequency but it works as they are only singlevalue
                 saveList(memFrequencyList, true);
                 saveList(gpuFrequencyList, true);
                 saveList(gpumemFrequencyListAndPowerLimit, true);
-                saveList(VCELimitTableData, false);
-                saveList(ACPLimitTableData, false);
-                saveList(UVDLimitTableData, false);
-                saveList(SAMULimitTableData, false);
+                // saveList(VCELimitTableData, false);
+                // saveList(ACPLimitTableData, false);
+                // saveList(UVDLimitTableData, false);
+                // saveList(SAMULimitTableData, false);
                 fixChecksum(true);
                 bw.Write(romStorageBuffer);
 
@@ -655,18 +640,157 @@ namespace HawaiBiosReader
                 }
             }
         }
+
+        private void saveList(ObservableCollection<GridRowVoltage2> list, bool isFrequency = false)
+        {
+            foreach (GridRowVoltage2 row in list)
+            {
+                int savePosition0;
+                int savePosition1;
+                int savePosition2;
+                int savePosition3;
+                int value0 = row.value0;
+                int value1 = row.value1;
+                int value2 = row.value2;
+                int value3 = row.value3;
+                if (row.position0.StartsWith("0x", StringComparison.CurrentCultureIgnoreCase) &&
+                    row.position1.StartsWith("0x", StringComparison.CurrentCultureIgnoreCase) &&
+                    row.position2.StartsWith("0x", StringComparison.CurrentCultureIgnoreCase) &&
+                    row.position3.StartsWith("0x", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    row.position0 = row.position0.Substring(2);
+                    row.position1 = row.position1.Substring(2);
+                    row.position2 = row.position2.Substring(2);
+                    row.position3 = row.position3.Substring(2);
+                }
+                if (isFrequency) // there is hack for 16 bit need fix
+                {
+                    value0 *= 100;
+                    value1 *= 100;
+                    value2 *= 100;
+                    value3 *= 100;
+                }
+                if (int.TryParse(row.position0, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out savePosition0))
+                {
+                    switch (row.type)
+                    {
+                        case "24-bit":
+                            {
+                                // this is for 24 bit
+                                romStorageBuffer[savePosition0] = (byte)value0;
+                                romStorageBuffer[savePosition0 + 1] = (byte)(value0 >> 8);
+                                romStorageBuffer[savePosition0 + 2] = (byte)(value0 >> 16);
+                                break;
+                            }
+                        case "16-bit":
+                            {
+                                romStorageBuffer[savePosition0] = (byte)row.value0;
+                                romStorageBuffer[savePosition0 + 1] = (byte)(row.value0 >> 8);
+                                break;
+                            }
+                        case "8-bit":
+                            {
+                                romStorageBuffer[savePosition0] = (byte)row.value0;
+                                break;
+                            }
+                    }
+                }
+                if (int.TryParse(row.position1, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out savePosition1))
+                {
+                    switch (row.type)
+                    {
+                        case "24-bit":
+                            {
+                                // this is for 24 bit
+                                romStorageBuffer[savePosition1] = (byte)value1;
+                                romStorageBuffer[savePosition1 + 1] = (byte)(value1 >> 8);
+                                romStorageBuffer[savePosition1 + 2] = (byte)(value1 >> 16);
+                                break;
+                            }
+                        case "16-bit":
+                            {
+                                romStorageBuffer[savePosition1] = (byte)row.value1;
+                                romStorageBuffer[savePosition1 + 1] = (byte)(row.value1 >> 8);
+                                break;
+                            }
+                        case "8-bit":
+                            {
+                                romStorageBuffer[savePosition1] = (byte)row.value1;
+                                break;
+                            }
+                    }
+                }
+                if (int.TryParse(row.position2, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out savePosition2))
+                {
+                    switch (row.type)
+                    {
+                        case "24-bit":
+                            {
+                                // this is for 24 bit
+                                romStorageBuffer[savePosition2] = (byte)value2;
+                                romStorageBuffer[savePosition2 + 1] = (byte)(value2 >> 8);
+                                romStorageBuffer[savePosition2 + 2] = (byte)(value2 >> 16);
+                                break;
+                            }
+                        case "16-bit":
+                            {
+                                romStorageBuffer[savePosition2] = (byte)row.value2;
+                                romStorageBuffer[savePosition2 + 1] = (byte)(row.value2 >> 8);
+                                break;
+                            }
+                        case "8-bit":
+                            {
+                                romStorageBuffer[savePosition2] = (byte)row.value2;
+                                break;
+                            }
+                    }
+                }
+                if (int.TryParse(row.position3, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out savePosition3))
+                {
+                    switch (row.type)
+                    {
+                        case "24-bit":
+                            {
+                                // this is for 24 bit
+                                romStorageBuffer[savePosition3] = (byte)value3;
+                                romStorageBuffer[savePosition3 + 1] = (byte)(value3 >> 8);
+                                romStorageBuffer[savePosition3 + 2] = (byte)(value3 >> 16);
+                                break;
+                            }
+                        case "16-bit":
+                            {
+                                romStorageBuffer[savePosition3] = (byte)row.value3;
+                                romStorageBuffer[savePosition3 + 1] = (byte)(row.value3 >> 8);
+                                break;
+                            }
+                        case "8-bit":
+                            {
+                                romStorageBuffer[savePosition3] = (byte)row.value3;
+                                break;
+                            }
+                    }
+                }
+            }
+        }
+
+
+
+
+
+
+
         private void saveList(ObservableCollection<GridRow> list, bool isFrequency = false)
         {
             foreach (GridRow row in list)
             {
                 int savePosition;
-                int savePosition2;
+
                 int value = row.value;
-                int voltage = row.vol;
-                if (row.position.StartsWith("0x", StringComparison.CurrentCultureIgnoreCase) && row.posvol.StartsWith("0x", StringComparison.CurrentCultureIgnoreCase))
+
+                if (row.position.StartsWith("0x", StringComparison.CurrentCultureIgnoreCase))
                 {
                     row.position = row.position.Substring(2);
-                    row.posvol = row.posvol.Substring(2);
+
                 }
 
                 if (isFrequency) // there is hack for 16 bit need fix
@@ -698,22 +822,38 @@ namespace HawaiBiosReader
                             }
                     }
                 }
-                if (int.TryParse(row.posvol, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out savePosition2))
-                {
-                    romStorageBuffer[savePosition2] = (byte)row.vol;
-                    romStorageBuffer[savePosition2 + 1] = (byte)(row.vol >> 8);
-                }
             }
         }
         // this is here because of bug with tabs and grids thanks microsoft
-        private void voltageEdit_GotFocus(object sender, RoutedEventArgs e)
+        private void voltageEdit2_GotFocus(object sender, RoutedEventArgs e)
         {
-            voltageEdit.Columns[0].IsReadOnly = true;
-            voltageEdit.Columns[1].IsReadOnly = false;
-            voltageEdit.Columns[2].IsReadOnly = true;
-            voltageEdit.Columns[3].IsReadOnly = true;
+            voltageEdit2.Columns[0].IsReadOnly = true;
+            voltageEdit2.Columns[1].IsReadOnly = true;
+            voltageEdit2.Columns[2].IsReadOnly = false;
+            voltageEdit2.Columns[3].IsReadOnly = true;
+            voltageEdit2.Columns[4].IsReadOnly = false;
+            voltageEdit2.Columns[5].IsReadOnly = true;
+            voltageEdit2.Columns[6].IsReadOnly = false;
+            voltageEdit2.Columns[7].IsReadOnly = true;
+            voltageEdit2.Columns[8].IsReadOnly = false;
+            voltageEdit2.Columns[9].IsReadOnly = true;
+            voltageEdit2.Columns[10].IsReadOnly = true;
         }
-
+        // this is here because of bug with tabs and grids thanks microsoft
+        private void voltageEdit3_GotFocus(object sender, RoutedEventArgs e)
+        {
+            voltageEdit3.Columns[0].IsReadOnly = true;
+            voltageEdit3.Columns[1].IsReadOnly = true;
+            voltageEdit3.Columns[2].IsReadOnly = false;
+            voltageEdit3.Columns[3].IsReadOnly = true;
+            voltageEdit3.Columns[4].IsReadOnly = false;
+            voltageEdit3.Columns[5].IsReadOnly = true;
+            voltageEdit3.Columns[6].IsReadOnly = false;
+            voltageEdit3.Columns[7].IsReadOnly = true;
+            voltageEdit3.Columns[8].IsReadOnly = false;
+            voltageEdit3.Columns[9].IsReadOnly = true;
+            voltageEdit3.Columns[10].IsReadOnly = true;
+        }
         private void gpuFrequencyTable_GotFocus(object sender, RoutedEventArgs e)
         {
             gpuFrequencyTable.Columns[0].IsReadOnly = true;
@@ -732,8 +872,8 @@ namespace HawaiBiosReader
             memFrequencyTable.Columns[2].IsReadOnly = false;
             memFrequencyTable.Columns[3].IsReadOnly = true;
             memFrequencyTable.Columns[4].IsReadOnly = true;
-            gpuFrequencyTable.Columns[5].IsReadOnly = true;
-            gpuFrequencyTable.Columns[6].IsReadOnly = false;
+            memFrequencyTable.Columns[5].IsReadOnly = true;
+            memFrequencyTable.Columns[6].IsReadOnly = true;
         }
 
         private void memgpuFrequencyTable_GotFocus(object sender, RoutedEventArgs e)
@@ -752,7 +892,7 @@ namespace HawaiBiosReader
             VCELimitTable.Columns[3].IsReadOnly = true;
             VCELimitTable.Columns[4].IsReadOnly = true;
             VCELimitTable.Columns[5].IsReadOnly = true;
-            VCELimitTable.Columns[6].IsReadOnly = false;
+            VCELimitTable.Columns[6].IsReadOnly = true;
         }
         private void ACPLimitTable_GotFocus(object sender, RoutedEventArgs e)
         {
@@ -762,7 +902,7 @@ namespace HawaiBiosReader
             ACPLimitTable.Columns[3].IsReadOnly = true;
             ACPLimitTable.Columns[4].IsReadOnly = true;
             ACPLimitTable.Columns[5].IsReadOnly = true;
-            ACPLimitTable.Columns[6].IsReadOnly = false;
+            ACPLimitTable.Columns[6].IsReadOnly = true;
         }
         private void SAMULimitTable_GotFocus(object sender, RoutedEventArgs e)
         {
@@ -772,7 +912,7 @@ namespace HawaiBiosReader
             SAMULimitTable.Columns[3].IsReadOnly = true;
             SAMULimitTable.Columns[4].IsReadOnly = true;
             SAMULimitTable.Columns[5].IsReadOnly = true;
-            SAMULimitTable.Columns[6].IsReadOnly = false;
+            SAMULimitTable.Columns[6].IsReadOnly = true;
         }
         private void UVDLimitTable_GotFocus(object sender, RoutedEventArgs e)
         {
@@ -782,7 +922,7 @@ namespace HawaiBiosReader
             UVDLimitTable.Columns[3].IsReadOnly = true;
             UVDLimitTable.Columns[4].IsReadOnly = true;
             UVDLimitTable.Columns[5].IsReadOnly = true;
-            UVDLimitTable.Columns[6].IsReadOnly = false;
+            UVDLimitTable.Columns[6].IsReadOnly = true;
         }
 
         // developer function
@@ -792,6 +932,21 @@ namespace HawaiBiosReader
 
         private void VCELimitTable_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
         {
+        }
+
+        private void gpuFrequencyTable_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+
+        private void gpuFrequencyTable_SelectionChanged_1(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+
+        private void memgpuFrequencyTable_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
         }
     }
 }

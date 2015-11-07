@@ -59,6 +59,7 @@ namespace TongaBiosReader
         int voltageTable3Offset = 179;
         int voltageTable2countOffset = 120;
         int voltageTable2Offset = 121;
+        int memoryFrequencyTableCountOffset = 334;
         int memoryFrequencyTableOffset = 342;
         int gpuFrequencyTableOffset = 248;
         int VCELimitTableOffset = 0;
@@ -123,31 +124,17 @@ namespace TongaBiosReader
                         switch (powerTableSize)
                         {
                             case 659:
-                                powerTablesize.Text += " - Sapphire R9 380";
-                                voltageTable2Offset = 121;
-                                memoryFrequencyTableOffset = 342;
-                                //gpuFrequencyTableOffset = 231;
-                                gpuFrequencyTableOffset = 248;
-                                //VCELimitTableOffset = 0;
-                                //AMUAndACPLimitTableOffset = 0;
-                                //UVDLimitTableOffset = 0;
-                                //tdpLimitOffset = 0;
-                                //tdcLimitOffset = 0;
-                                powerDeliveryLimitOffset = 31;
+                                powerTablesize.Text += " - R9 380 (659)";
                                 break;
                             case 661:
-                                powerTablesize.Text += " - MSI R9 380";
-                                voltageTable2Offset = 121;
-                                memoryFrequencyTableOffset = 342;
-                                //gpuFrequencyTableOffset = 231;
-                                gpuFrequencyTableOffset = 248;
-                                //VCELimitTableOffset = 0;
-                                //AMUAndACPLimitTableOffset = 0;
-                                //UVDLimitTableOffset = 0;
-                                //tdpLimitOffset = 0;
-                                //tdcLimitOffset = 0;
-                                powerDeliveryLimitOffset = 31;
+                                powerTablesize.Text += " - R9 380 (661)";
                                 break;
+                            case 635:
+                                powerTablesize.Text += " - R9 285 (635)";
+                                fanTableOffset = 533;
+                                break;
+
+                                
                             default:
                                 powerTablesize.Text += " - Unknown type";
                                 break;
@@ -200,7 +187,7 @@ namespace TongaBiosReader
 
 
 
-
+                        
 
 
                         // read voltage table
@@ -213,12 +200,11 @@ namespace TongaBiosReader
                         voltageEdit.ItemsSource = voltageList;
                         */
                         // memory frequency table
-                        int memoryCount = 4;
-                        if (biosName.Text.Contains("TONGA")) memoryCount = 2;
 
+                        int memoryFrequencyTableCount = get8BitValueFromPosition(powerTablePosition + memoryFrequencyTableCountOffset, romStorageBuffer);
 
                         memFrequencyList.Clear();
-                        for (int i = 0; i < memoryCount; i++)
+                        for (int i = 0; i < memoryFrequencyTableCount; i++)
                         {
                             readValueFromPositionToList(memFrequencyList, (powerTablePosition + memoryFrequencyTableOffset + (i * 13)), 1, "Mhz", true, i);
                         }

@@ -1,5 +1,5 @@
-# TongaBiosReader
-Tonga Bios Reader Tool 
+# Tonga Bios Editor R9 380 285
+Tonga Bios Reader Tool R9 380 285
 
 
 **!!! WARNING !!!**

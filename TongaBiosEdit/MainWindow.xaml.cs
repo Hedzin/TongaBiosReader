@@ -28,7 +28,7 @@ namespace TongaBiosReader
         ObservableCollection<GridRowVoltage2> voltageList2 = new ObservableCollection<GridRowVoltage2>();
         ObservableCollection<GridRowVoltage2> voltageList3 = new ObservableCollection<GridRowVoltage2>();
         ObservableCollection<GridRowVoltage> gpumemFrequencyListAndPowerLimit = new ObservableCollection<GridRowVoltage>();
-
+        ObservableCollection<GridRowVoltage> fanList = new ObservableCollection<GridRowVoltage>();
         ObservableCollection<GridRow> gpuFrequencyList = new ObservableCollection<GridRow>();
         ObservableCollection<GridRow> memFrequencyList = new ObservableCollection<GridRow>();
         ObservableCollection<GridRow> VCELimitTableData = new ObservableCollection<GridRow>();
@@ -155,8 +155,14 @@ namespace TongaBiosReader
                         //gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + tdpLimitOffset).ToString("X"), get16BitValueFromPosition(powerTablePosition + tdpLimitOffset, romStorageBuffer), "W", "16-bit"));
                         gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + powerDeliveryLimitOffset).ToString("X"), get16BitValueFromPosition(powerTablePosition + powerDeliveryLimitOffset, romStorageBuffer), "%", "16-bit"));
                         //gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + tdcLimitOffset).ToString("X"), get16BitValueFromPosition(powerTablePosition + tdcLimitOffset, romStorageBuffer), "A", "16-bit"));
-
+                        gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + 23).ToString("X"), get24BitValueFromPosition(powerTablePosition + 23, romStorageBuffer, true), "Mhz", "24-bit"));
+                        gpumemFrequencyListAndPowerLimit.Add(new GridRowVoltage("0x" + (powerTablePosition + 27).ToString("X"), get24BitValueFromPosition(powerTablePosition + 27, romStorageBuffer, true), "Mhz", "24-bit"));
+                        
+ 
                         memgpuFrequencyTable.ItemsSource = gpumemFrequencyListAndPowerLimit;
+
+
+
 
 
                         // read voltage table 1
@@ -263,6 +269,21 @@ namespace TongaBiosReader
                         if (fanTablePosition > 0)
                         {
 
+
+                            fanList.Clear();
+                            fanList.Add(new GridRowVoltage("0x" + (fanTablePosition + 1).ToString("X"), get8BitValueFromPosition(fanTablePosition + 1, romStorageBuffer), "°C", "8-bit")); //temperatureHysteresis
+                            fanList.Add(new GridRowVoltage("0x" + (fanTablePosition + 2).ToString("X"), get16BitValueFromPosition(fanTablePosition + 2, romStorageBuffer), "°C", "16-bit")); //fantemperature1
+                            fanList.Add(new GridRowVoltage("0x" + (fanTablePosition + 4).ToString("X"), get16BitValueFromPosition(fanTablePosition + 4, romStorageBuffer), "°C", "16-bit")); //fantemperature2
+                            fanList.Add(new GridRowVoltage("0x" + (fanTablePosition + 6).ToString("X"), get16BitValueFromPosition(fanTablePosition + 6, romStorageBuffer), "°C", "16-bit")); //fantemperature3
+                            fanList.Add(new GridRowVoltage("0x" + (fanTablePosition + 8).ToString("X"), get16BitValueFromPosition(fanTablePosition + 8, romStorageBuffer), "°C", "16-bit")); //fanspeed1
+                            fanList.Add(new GridRowVoltage("0x" + (fanTablePosition + 10).ToString("X"), get16BitValueFromPosition(fanTablePosition + 10, romStorageBuffer), "°C", "16-bit")); //fanspeed2
+                            fanList.Add(new GridRowVoltage("0x" + (fanTablePosition + 12).ToString("X"), get16BitValueFromPosition(fanTablePosition + 12, romStorageBuffer), "°C", "16-bit")); //fanspeed3
+                            fanList.Add(new GridRowVoltage("0x" + (fanTablePosition + 14).ToString("X"), get16BitValueFromPosition(fanTablePosition + 14, romStorageBuffer), "°C", "16-bit")); //fantemperature4
+                            fanList.Add(new GridRowVoltage("0x" + (fanTablePosition + 16).ToString("X"), get8BitValueFromPosition(fanTablePosition + 16, romStorageBuffer), "1/0", "8-bit")); //fanControlType
+                            fanList.Add(new GridRowVoltage("0x" + (fanTablePosition + 17).ToString("X"), get16BitValueFromPosition(fanTablePosition + 17, romStorageBuffer), "°C", "8-bit")); //pwmFanMax
+                            fanTable.ItemsSource = fanList;
+
+
                             readValueFromPosition(temperatureHysteresis, fanTablePosition + 1, 2, "°C");
                             readValueFromPosition(fantemperature1, fanTablePosition + 2, 0, "°C", true);
                             readValueFromPosition(fantemperature2, fanTablePosition + 4, 0, "°C", true);
@@ -276,8 +297,8 @@ namespace TongaBiosReader
                             readValueFromPosition(pwmFanMax, fanTablePosition + 17, 2, "%");
                             //readValueFromPosition(maxAsicTemperature, fanTablePosition + 459, 2, "°C");
 
-                            readValueFromPosition(gpuMaxClock, powerTablePosition + 23, 1, "Mhz", true);  // this offset work only for 390X need some polishing for other cards
-                            readValueFromPosition(memMaxClock, powerTablePosition + 27, 1, "Mhz", true);
+                           // readValueFromPosition(gpuMaxClock, powerTablePosition + 23, 1, "Mhz", true);  // this offset work only for 390X need some polishing for other cards
+                           // readValueFromPosition(memMaxClock, powerTablePosition + 27, 1, "Mhz", true);
 
                         }
                         else
@@ -548,6 +569,7 @@ namespace TongaBiosReader
                 saveList(memFrequencyList, true);
                 saveList(gpuFrequencyList, true);
                 saveList(gpumemFrequencyListAndPowerLimit, true);
+                saveList(fanList);
                 // saveList(VCELimitTableData, false);
                 // saveList(ACPLimitTableData, false);
                 // saveList(UVDLimitTableData, false);
@@ -860,6 +882,16 @@ namespace TongaBiosReader
 
         }
 
+        private void fanTable_GotFocus(object sender, RoutedEventArgs e)
+        {
+            memFrequencyTable.Columns[0].IsReadOnly = true;
+            memFrequencyTable.Columns[1].IsReadOnly = true;
+            memFrequencyTable.Columns[2].IsReadOnly = false;
+            memFrequencyTable.Columns[3].IsReadOnly = true;
+            memFrequencyTable.Columns[4].IsReadOnly = true;
+
+        }
+
         private void memgpuFrequencyTable_GotFocus(object sender, RoutedEventArgs e)
         {
             memgpuFrequencyTable.Columns[0].IsReadOnly = true;
@@ -929,6 +961,14 @@ namespace TongaBiosReader
         }
 
         private void memgpuFrequencyTable_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+        private void fanTable_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+        private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 
         }
